@@ -1,21 +1,19 @@
 """Model for x509.Name."""
 
 import base64
-from typing import Any, cast
+from collections.abc import Iterator
+from typing import Any, cast, overload
 
 from cryptography import x509
 from cryptography.x509.name import _ASN1Type
 from cryptography.x509.oid import NameOID
 from pydantic import ConfigDict, Field, model_validator
+from pydantic_core.core_schema import ValidationInfo
 
 from pydantic_cryptography.base.models import CryptographyModel, CryptographyRootModel
 from pydantic_cryptography.base.types import ObjectIdentifierType
 
-_NAME_ATTRIBUTE_OID_DESCRIPTION = (
-    "A dotted string representing the OID or a known alias as described in "
-    "[NAME_OID_TYPES]"
-    "(https://django-ca.readthedocs.io/en/latest/python/constants.html#django_ca.constants.NAME_OID_TYPES)."
-)
+_NAME_ATTRIBUTE_OID_DESCRIPTION = "A dotted string representing the OID."
 _NAME_ATTRIBUTE_VALUE_DESCRIPTION = (
     "Actual value of the attribute. For x500 unique identifiers (OID "
     f"{NameOID.X500_UNIQUE_IDENTIFIER.dotted_string}) the value must be the base64 encoded."
@@ -32,16 +30,29 @@ MULTIPLE_OID_STRINGS = tuple(oid.dotted_string for oid in MULTIPLE_OIDS)
 
 
 class NameAttributeModel(CryptographyModel["x509.NameAttribute[str | bytes]"]):
-    """Pydantic model wrapping :py:class:`~cg:cryptography.x509.NameAttribute`.
+    """Pydantic model wrapping |NameAttributeRef|.
 
-    For the `oid`, you can either use a dotted string or an alias from
-    :py:attr:`~django_ca.constants.NAME_OID_TYPES`:
+    Normal model construction is straight forward:
 
-    .. pydantic-model:: name_attribute
+    >>> NameAttributeModel(oid="2.5.4.3", value="example.com")
+    NameAttributeModel(oid='2.5.4.3', value='example.com')
 
-    When processing a x500 unique identifier attribute, the value is expected to be base64 encoded:
+    The constructor will also accept :class:`~cg:cryptography.x509.ObjectIdentifier` objects for
+    `oid`:
 
-    .. pydantic-model:: name_attribute_x500
+    >>> NameAttributeModel(oid=NameOID.COMMON_NAME, value="example.com")
+    NameAttributeModel(oid='2.5.4.3', value='example.com')
+
+    For `x509UniqueIdentifier` attributes you have to base64-encode the value:
+
+    >>> import base64
+    >>> value = base64.b64encode(b"example.com")
+    >>> NameAttributeModel(oid=NameOID.X500_UNIQUE_IDENTIFIER, value=value)
+    NameAttributeModel(oid='2.5.4.45', value='ZXhhbXBsZS5jb20=')
+
+    :param str | ~cryptography.x509.ObjectIdentifier oid: The dotted string value of the OID (e.g.
+        "2.5.4.3").
+    :param str value: The value of the attribute.
     """
 
     model_config = ConfigDict(
@@ -102,9 +113,15 @@ class NameModel(CryptographyRootModel[list[NameAttributeModel], x509.Name]):
     """Pydantic model wrapping :py:class:`~cg:cryptography.x509.Name`.
 
     This model is a Pydantic :py:class:`~pydantic.root_model.RootModel` that takes a list of
-    :py:class:`~django_ca.pydantic.name.NameAttributeModel` instances:
+    :py:class:`~pydantic_cryptography.x509.NameAttributeModel` instances:
 
-    .. pydantic-model:: name
+    >>> NameModel([
+    ...     NameAttributeModel(oid="2.5.4.3", value="example.com"),
+    ... ])
+    NameModel(root=[NameAttributeModel(oid='2.5.4.3', value='example.com')])
+
+    :param list[~pydantic_cryptography.x509.NameAttributeModel] root:
+        The name described by this model.
     """
 
     root: list[NameAttributeModel] = Field(
@@ -118,10 +135,30 @@ class NameModel(CryptographyRootModel[list[NameAttributeModel], x509.Name]):
         },
     )
 
+    def __iter__(self) -> Iterator[NameAttributeModel]:  # type: ignore[override]
+        return iter(self.root)
+
+    @overload
+    def __getitem__(self, item: int) -> NameAttributeModel: ...
+
+    @overload
+    def __getitem__(self, item: slice) -> list[NameAttributeModel]: ...
+
+    def __getitem__(self, item: int | slice) -> NameAttributeModel | list[NameAttributeModel]:
+        return self.root[item]
+
+    def __len__(self) -> int:
+        return len(self.root)
+
     @model_validator(mode="before")
     @classmethod
-    def parse_cryptography(cls, data: Any) -> Any:
+    def parse_cryptography(cls, data: Any, info: ValidationInfo) -> Any:
         """Validator for parsing :py:class:`~cg:cryptography.x509.Name`."""
+        if isinstance(data, str):
+            attr_name_overrides = {}
+            if isinstance(info.context, dict):
+                attr_name_overrides = info.context.get("attr_name_overrides", set())
+            data = x509.Name.from_rfc4514_string(data, attr_name_overrides=attr_name_overrides)
         if isinstance(data, x509.Name):
             return list(data)
         return data

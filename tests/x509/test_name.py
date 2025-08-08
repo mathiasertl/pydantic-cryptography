@@ -92,6 +92,7 @@ def test_name_attribute_empty_common_name(oid: Any) -> None:
     ("serialized", "expected"),
     (
         ([], x509.Name([])),
+        ("CN=example.com", [x509.NameAttribute(oid=NameOID.COMMON_NAME, value="example.com")]),
         (
             [{"oid": NameOID.COMMON_NAME.dotted_string, "value": "example.com"}],
             [x509.NameAttribute(oid=NameOID.COMMON_NAME, value="example.com")],
@@ -115,6 +116,27 @@ def test_name(
 ) -> None:
     """Test NameModel."""
     assert_cryptography_model(NameModel, {"root": serialized}, x509.Name(expected))  # type: ignore[type-var]
+
+
+def test_iterable() -> None:
+    """Test that NameModel is iterable."""
+    name = NameModel.model_validate("CN=example.com,OU=ExampleOrgUnit,O=ExampleOrg,ST=Vienna,C=AT")
+    assert len(name) == 5
+    assert list(name) == [
+        NameAttributeModel(oid=NameOID.COUNTRY_NAME.dotted_string, value="AT"),
+        NameAttributeModel(oid=NameOID.STATE_OR_PROVINCE_NAME.dotted_string, value="Vienna"),
+        NameAttributeModel(oid=NameOID.ORGANIZATION_NAME.dotted_string, value="ExampleOrg"),
+        NameAttributeModel(
+            oid=NameOID.ORGANIZATIONAL_UNIT_NAME.dotted_string, value="ExampleOrgUnit"
+        ),
+        NameAttributeModel(oid=NameOID.COMMON_NAME.dotted_string, value="example.com"),
+    ]
+
+    assert name[0] == NameAttributeModel(oid="2.5.4.6", value="AT")
+    name_slice: list[NameAttributeModel] = name[4:]  # assignment to test mypy
+    assert name_slice == [
+        NameAttributeModel(oid=NameOID.COMMON_NAME.dotted_string, value="example.com")
+    ]
 
 
 @pytest.mark.parametrize(
