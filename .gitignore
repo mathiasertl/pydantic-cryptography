@@ -1,6 +1,7 @@
 *.egg-info/
 *.py[oc]
 *.sw[a-z]
+/.coverage
 /.idea/
 /.venv/
 pycache/

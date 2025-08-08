@@ -28,12 +28,11 @@ _NAME_ATTRIBUTE_VALUE_DESCRIPTION = (
 # WARNING: sync any updates here to model_settings.SettingsModel._check_name().
 #: OIDs that can occur multiple times in a certificate
 MULTIPLE_OIDS = (NameOID.DOMAIN_COMPONENT, NameOID.ORGANIZATIONAL_UNIT_NAME, NameOID.STREET_ADDRESS)
-MULTIPLE_OID_STRINGS = (oid.dotted_string for oid in MULTIPLE_OIDS)
+MULTIPLE_OID_STRINGS = tuple(oid.dotted_string for oid in MULTIPLE_OIDS)
 
 
 class NameAttributeModel(CryptographyModel["x509.NameAttribute[str | bytes]"]):
-    """
-    Pydantic model wrapping :py:class:`~cg:cryptography.x509.NameAttribute`.
+    """Pydantic model wrapping :py:class:`~cg:cryptography.x509.NameAttribute`.
 
     For the `oid`, you can either use a dotted string or an alias from
     :py:attr:`~django_ca.constants.NAME_OID_TYPES`:
@@ -81,7 +80,7 @@ class NameAttributeModel(CryptographyModel["x509.NameAttribute[str | bytes]"]):
         if self.oid in country_code_oids and len(self.value) != 2:
             raise ValueError(f"{self.value}: Must have exactly two characters")
 
-        cn_oid = NameOID.COUNTRY_NAME.dotted_string
+        cn_oid = NameOID.COMMON_NAME.dotted_string
         if self.oid == cn_oid and not 1 <= len(self.value) <= 64:
             raise ValueError(
                 f"{cn_oid} length must be >= 1 and <= 64, but it was {len(self.value)}"
@@ -100,8 +99,7 @@ class NameAttributeModel(CryptographyModel["x509.NameAttribute[str | bytes]"]):
 
 
 class NameModel(CryptographyRootModel[list[NameAttributeModel], x509.Name]):
-    """
-    Pydantic model wrapping :py:class:`~cg:cryptography.x509.Name`.
+    """Pydantic model wrapping :py:class:`~cg:cryptography.x509.Name`.
 
     This model is a Pydantic :py:class:`~pydantic.root_model.RootModel` that takes a list of
     :py:class:`~django_ca.pydantic.name.NameAttributeModel` instances:

@@ -19,8 +19,25 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "coverage>=7.10.2",
     "mypy>=1.17.1",
+    "pytest>=8.4.1",
+    "pytest-cov>=6.2.1",
+    "pytest-random-order>=1.2.0",
     "ruff>=0.12.8",
+]
+"cryptography44" = ["cryptography~=44.0"]
+"cryptography45" = ["cryptography~=45.0"]
+"pydantic2.10" = ["pydantic~=2.10.0"]
+"pydantic2.11" = ["pydantic~=2.11.0"]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--cov",
+    "--cov-report=html",
+    "--cov-fail-under=100",
+    "--random-order",
+    "--doctest-modules",
 ]
 
 [tool.ruff]
@@ -47,7 +64,7 @@ ignore = [
     "D105",  # Missing docstring in magic method - includes __str__() etc
     "D106",  # Missing docstring in public nested class - includes Meta/Media classes
     "D203",  # incorrect-blank-line-before-class - don't need a blank line for comments.
-    "D212",  # multi-line-summary-first-line - we want summary on the first line
+    "D213",  # multi-line-summary-second-line - we want summary on the first line
     "D301",  # Use `r"""` if any backslashes in a docstring - incompatible with doctests!
     "D401",  # First line of docstring should be in imperative mood
 ]
@@ -60,3 +77,9 @@ combine-as-imports = true
 
 [tool.setuptools_scm]
 local_scheme = "no-local-version"
+
+[tool.uv]
+conflicts = [
+    [ { group = "cryptography44" }, { group = "cryptography45" }, ],
+    [ { group = "pydantic2.10" }, { group = "pydantic2.11" } ],
+]
