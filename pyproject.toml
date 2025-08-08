@@ -37,19 +37,24 @@ dynamic = ["version"]
 
 [project.urls]
 Homepage = "https://github.com/mathiasertl/pydantic-cryptography"
-#Documentation = ""
+Documentation = "https://pydantic-cryptography.readthedocs.io/en/latest/"
 Source = "https://github.com/mathiasertl/pydantic-cryptography"
 Issues = "https://github.com/mathiasertl/pydantic-cryptography/issues"
-#Changelog = ""
+Changelog = "https://pydantic-cryptography.readthedocs.io/en/latest/changelog.html"
 
 [dependency-groups]
 dev = [
+    "autodoc-pydantic>=2.2.0",
     "coverage>=7.10.2",
     "mypy>=1.17.1",
     "pytest>=8.4.1",
     "pytest-cov>=6.2.1",
     "pytest-random-order>=1.2.0",
     "ruff>=0.12.8",
+    "sphinx>=8.1.3",
+    "sphinx-rtd-theme>=3.0.2",
+    "sphinxcontrib-spelling>=8.0.1",
+    "types-docutils>=0.21.0.20250809",
 ]
 "cryptography44" = ["cryptography~=44.0"]
 "cryptography45" = ["cryptography~=45.0"]
@@ -63,6 +68,7 @@ addopts = [
     "--cov-fail-under=100",
     "--random-order",
     "--doctest-modules",
+    "--doctest-glob=*.rst",
 ]
 
 [tool.ruff]

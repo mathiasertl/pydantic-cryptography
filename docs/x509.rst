@@ -1,0 +1,61 @@
+##############################
+``pydantic_cryptography.x509``
+##############################
+
+
+***********
+Name models
+***********
+
+.. autoclass:: pydantic_cryptography.x509.NameAttributeModel
+    :members: cryptography
+
+    .. py:function:: model_validate(obj, *, **kwargs) -> NameAttributeModel
+
+        As usual, this function will parse a cryptography object:
+
+        >>> from cryptography import x509
+        >>> from cryptography.x509.oid import NameOID
+        >>> from pydantic_cryptography.x509 import NameAttributeModel
+        >>> attr = x509.NameAttribute(oid=NameOID.COMMON_NAME, value="example.com")
+        >>> model = NameAttributeModel.model_validate(attr)
+        >>> attr == model.cryptography
+        True
+
+        For `**kwargs`, please see :func:`~pydantic.BaseModel.model_validate` for more
+        information.
+
+.. autoclass:: pydantic_cryptography.x509.NameModel
+    :members: cryptography
+
+    .. py:function:: model_validate(obj, *, **kwargs) -> NameModel
+
+        As usual, this function will parse a cryptography object:
+
+        >>> from cryptography import x509
+        >>> from cryptography.x509.oid import NameOID
+        >>> from pydantic_cryptography.x509 import NameModel
+        >>> name_attr = x509.NameAttribute(oid=NameOID.COMMON_NAME, value="example.com")
+        >>> name = x509.Name([name_attr])
+        >>> name_model = NameModel.model_validate(name)
+        >>> name_model.cryptography == name
+        True
+
+        The function also accepts an RFC 4514 string as input:
+
+        >>> NameModel.model_validate("CN=example.com")
+        NameModel(root=[NameAttributeModel(oid='2.5.4.3', value='example.com')])
+
+        ... and you can pass attribute name overrides as validation context:
+
+        >>> NameModel.model_validate(
+        ...     "E=user@example.com",
+        ...     context={'attr_name_overrides': {'E': NameOID.EMAIL_ADDRESS}}
+        ... )
+        NameModel(root=[NameAttributeModel(oid='1.2.840.113549.1.9.1', value='user@example.com')])
+
+        For `**kwargs`, please see :func:`~pydantic.BaseModel.model_validate` for more
+        information.
+
+        :param str | ~cryptography.x509.Name | list[~pydantic_cryptography.x509.NameAttributeModel | ~cryptography.x509.NameAttribute] obj:
+        :rtype: NameModel
