@@ -7,7 +7,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pydantic-cryptography"
-version = "0.1.0"
+authors = [
+    {name = "Mathias Ertl", email = "mati@er.tl"},
+]
 description = "A Pydantic model library wrapping Cryptography objects."
 readme = "README.md"
 license = "BSD-2-Clause"
@@ -16,6 +18,29 @@ dependencies = [
     "cryptography>=44",
     "pydantic>=2.10",
 ]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Security",
+    "Typing :: Typed",
+]
+
+# Dynamic metadata, further specified in the tool.setuptools.dynamic section below
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/mathiasertl/pydantic-cryptography"
+#Documentation = ""
+Source = "https://github.com/mathiasertl/pydantic-cryptography"
+Issues = "https://github.com/mathiasertl/pydantic-cryptography/issues"
+#Changelog = ""
 
 [dependency-groups]
 dev = [
@@ -74,6 +99,13 @@ parametrize-values-type = "tuple"
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
+
+[tool.setuptools.dynamic]
+# NOTE: readme is equivalent to long_description in setup.cfg
+#readme = {file = ["README.rst"], content-type = "text/x-markdown"}
+
+[tool.setuptools.packages.find]
+include = ["pydantic_cryptography*"]
 
 [tool.setuptools_scm]
 local_scheme = "no-local-version"
