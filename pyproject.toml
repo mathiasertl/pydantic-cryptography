@@ -1,0 +1,62 @@
+[build-system]
+# Minimum requirements for the build system to execute (PEP-518)
+# >= 61: Add pyproject.toml support and setuptools.config.setupcfg.read_configuration
+# >= 68.1: "Promote pyproject.toml’s [tool.setuptools] out of beta." in the ChangeLog
+requires = ["setuptools>=68.1", "wheel", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pydantic-cryptography"
+version = "0.1.0"
+description = "A Pydantic model library wrapping Cryptography objects."
+readme = "README.md"
+license = "BSD-2-Clause"
+requires-python = ">=3.10"
+dependencies = [
+    "cryptography>=44",
+    "pydantic>=2.10",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.17.1",
+    "ruff>=0.12.8",
+]
+
+[tool.ruff]
+extend-exclude = ["migrations", "stubs"]
+line-length = 100
+
+[tool.ruff.lint]
+extend-select = [
+    "B",  # flake8-bugbear
+    "D",  # pydocstyle
+    "E",  # pycodestyle
+    "F",  # pyflakes
+    "I",  # isort
+    "G",  # flake8-logging-format
+    "DJ",  # flake8-django
+    "PT",  # flake8-pytest-style
+    "UP",  # pyupgrade
+    "RUF",  # ruff specific checks
+]
+
+ignore = [
+    "D102",  # Missing docstring in public method - includes inherited methods
+    "D104",  # Missing docstring in public package - includes even empty __init__.py files
+    "D105",  # Missing docstring in magic method - includes __str__() etc
+    "D106",  # Missing docstring in public nested class - includes Meta/Media classes
+    "D203",  # incorrect-blank-line-before-class - don't need a blank line for comments.
+    "D212",  # multi-line-summary-first-line - we want summary on the first line
+    "D301",  # Use `r"""` if any backslashes in a docstring - incompatible with doctests!
+    "D401",  # First line of docstring should be in imperative mood
+]
+
+[tool.ruff.lint.flake8-pytest-style]
+parametrize-values-type = "tuple"
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+
+[tool.setuptools_scm]
+local_scheme = "no-local-version"
